@@ -1,0 +1,23 @@
+﻿<Window x:Class="LAB_OS.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:LAB_OS"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="350" Width="525">
+    <Grid>
+        <ListView x:Name="ProcessList" HorizontalAlignment="Left" VerticalAlignment="Top" HorizontalContentAlignment="Right" VerticalContentAlignment="Stretch" MouseDoubleClick="ProcessList_MouseDoubleClick">
+         <ListView.View>
+                <GridView>
+                    <GridViewColumn DisplayMemberBinding="{Binding Path=Id}">ID</GridViewColumn>
+                    <GridViewColumn DisplayMemberBinding="{Binding Path=ProcessName}">Процесс</GridViewColumn>
+                    <GridViewColumn DisplayMemberBinding="{Binding Path=User}">Юзверь</GridViewColumn>
+                    <GridViewColumn DisplayMemberBinding="{Binding Path=Memory}">Память</GridViewColumn>
+                    <GridViewColumn DisplayMemberBinding="{Binding Path=Priority}" Width="70">Приоритет</GridViewColumn>
+                    <GridViewColumn DisplayMemberBinding="{Binding Path=Threads}">Потоки</GridViewColumn>
+                </GridView>
+            </ListView.View>
+        </ListView>
+    </Grid>
+</Window>
