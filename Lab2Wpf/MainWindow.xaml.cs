@@ -1,27 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
-using Windows.UI.Core;
-using Windows.UI.Text;
-using Windows.UI.Xaml;
-using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
-using Windows.UI.Xaml.Documents;
-using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
-using Windows.UI.Xaml.Navigation;
+using System.Windows;
+using System.Windows.Threading;
 
-namespace lab2
+namespace Lab2Wpf
 {
-    public sealed partial class MainPage : Page
+    /// <summary>
+    /// Interaction logic for MainWindow.xaml
+    /// </summary>
+    public partial class MainWindow
     {
         private int _algorithm = 0;
         private int _true = 1;
@@ -41,9 +31,9 @@ namespace lab2
         private Thread _thread2Backup;
         private int i = 0;
 
-        public MainPage()
+        public MainWindow()
         {
-            this.InitializeComponent();
+            InitializeComponent();
             _thread1 = new Thread(this.ThreadPeterson1);
             _thread1.Priority = ThreadPriority.Lowest;
             _thread1.Start();
@@ -56,7 +46,6 @@ namespace lab2
             _thread2Backup = new Thread(this.ThreadAlternation2);
             _thread2Backup.Priority = ThreadPriority.Lowest;
             _thread2Backup.Start();
-            
         }
 
         private void ThreadPeterson1()
@@ -68,9 +57,8 @@ namespace lab2
                 EnterRegion(0);
                 CriticalRegion1();
                 LeaveRegion(0);
-           //     AddLog("Thread1 critical region is over");
+                //     AddLog("Thread1 critical region is over");
             }
-          
         }
 
         private void ThreadAlternation1()
@@ -83,25 +71,29 @@ namespace lab2
                 _thread1IsWorking = true;
                 CriticalRegion1();
                 _thread1IsWorking = false;
-           //     AddLog("Thread1 critical region is over");
+                //     AddLog("Thread1 critical region is over");
             }
         }
 
         private void CriticalRegion1()
         {
-            AddLog("Thread1 is waiting for input... Alg:"+_algorithm);
+            AddLog("Thread1 is waiting for input... Alg:" + _algorithm);
+
             int k = _algorithm;
-            while (!_textEnterred);
+            while (!_textEnterred) ;
             if (k != _algorithm)
             {
                 return;
             }
+
             string input = GetText().Result;
+
             StringBuilder result = new StringBuilder();
             foreach (var symb in input)
             {
                 result.Append((int) symb);
             }
+
             SetText(result.ToString());
             _textEnterred = false;
         }
@@ -115,9 +107,8 @@ namespace lab2
                 EnterRegion(1);
                 CriticalRegion2();
                 LeaveRegion(1);
-               // AddLog("Thread2 critical region is over");
+                // AddLog("Thread2 critical region is over");
             }
-
         }
 
 
@@ -131,7 +122,7 @@ namespace lab2
                 _thread2IsWorking = true;
                 CriticalRegion2();
                 _thread2IsWorking = false;
-              //  AddLog("Thread2 critical region is over");
+                //  AddLog("Thread2 critical region is over");
             }
         }
 
@@ -139,13 +130,16 @@ namespace lab2
         private void CriticalRegion2()
         {
             AddLog("Thread2 is waiting for input... Alg:" + _algorithm);
+
             int k = _algorithm;
-            while (!_textEnterred);
+            while (!_textEnterred) ;
             if (k != _algorithm)
             {
                 return;
             }
+
             string input = GetText().Result;
+
             StringBuilder result = new StringBuilder();
             foreach (var symb in input)
             {
@@ -158,6 +152,7 @@ namespace lab2
                     result.Append(symb);
                 }
             }
+
             SetText(result.ToString());
             _textEnterred = false;
         }
@@ -166,9 +161,9 @@ namespace lab2
         private void EnterRegion(int process) // номер процесса - 0 или 1
         {
             int other;
-            other = 1 - process;    // точка 1
-            _interested[process] = _true;  // точка 2 (заинтересованный процесс)
-            _turn = process;         // точка 3
+            other = 1 - process; // точка 1
+            _interested[process] = _true; // точка 2 (заинтересованный процесс)
+            _turn = process; // точка 3
             while (_turn == process && _interested[other] == _true) ; // активное ожидание
         }
 
@@ -179,19 +174,29 @@ namespace lab2
 
         private async Task<string> GetText()
         {
-            string s = null;
-            await this.Dispatcher.RunAsync(CoreDispatcherPriority.Low, () => { s = InputField.Text; });
-            return s;
+            string result = null;
+
+            void Get()
+            {
+                result = InputField.Text;
+            }
+
+            await this.Dispatcher.BeginInvoke(DispatcherPriority.Background, (Action) Get);
+            return result;
         }
 
         private async Task SetText(string value)
         {
-            await this.Dispatcher.RunAsync(CoreDispatcherPriority.Low, () => { InputField.Text = value; });
+            void Set()
+            {
+                InputField.Text = value;
+            }
+            await this.Dispatcher.BeginInvoke(DispatcherPriority.Background, (Action) Set);
         }
 
-        private async void AddLog(string text)
+        private void AddLog(string text)
         {
-            await this.Dispatcher.RunAsync(CoreDispatcherPriority.Low, () =>
+            void Log()
             {
                 _logList.AddFirst(LastLog.Text);
                 LastLog.Text = ++i + ") " + text;
@@ -199,13 +204,17 @@ namespace lab2
                 {
                     _logList.RemoveLast();
                 }
+
                 StringBuilder logText = new StringBuilder();
                 foreach (var logNode in _logList)
                 {
                     logText.Append(logNode).Append(Environment.NewLine);
                 }
-                Log.Text = logText.ToString();
-            });
+
+                this.Log.Text = logText.ToString();
+            }
+
+            this.Dispatcher.BeginInvoke(DispatcherPriority.Background, (Action) Log);
         }
 
         private void Enter_Click(object sender, RoutedEventArgs e)
@@ -223,6 +232,7 @@ namespace lab2
             {
                 _algorithm = 0;
             }
+
             Thread t;
             t = _thread1Backup;
             _thread1Backup = _thread1;
